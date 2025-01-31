@@ -12,9 +12,12 @@ pipeline {
         stage('Get Code') {
             steps {
                 script {
-                    sh '''
-                        git clone --branch develop https://github.com/JGilPantoja/todolist-aws.git .
+                   sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
                     '''
+                    checkout([$class: 'GitSCM', branches: [[name: '*/develop']], userRemoteConfigs: [[url: 'https://github.com/JGilPantoja/todolist-aws.git']]])
                 }
             }
         }
@@ -25,6 +28,9 @@ pipeline {
                     steps {
                         script {
                             sh '''
+                                whoami
+                                hostname
+                                echo ${WORKSPACE}
                                 flake8 src --exit-zero --format=pylint > flake8_report.txt || true
                             '''
                             recordIssues(
@@ -38,6 +44,9 @@ pipeline {
                     steps {
                         script {
                             sh '''
+                                whoami
+                                hostname
+                                echo ${WORKSPACE}
                                 bandit -r src -f custom -o bandit_report.txt --msg-template "{abspath}:{line}: [{test_id}] {msg}" || true
                             '''
                             recordIssues(
@@ -58,6 +67,9 @@ pipeline {
             steps {
                 script {
                     sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
                         sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV
                         sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV
                         sam deploy --stack-name $STACK_NAME \
