@@ -13,7 +13,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        git branch: 'develop', url: 'https://github.com/JGilPantoja/todolist-aws.git'
+                        git clone --branch develop https://github.com/JGilPantoja/todolist-aws.git .
                     '''
                 }
             }
