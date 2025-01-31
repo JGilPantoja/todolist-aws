@@ -18,6 +18,9 @@ pipeline {
                         echo ${WORKSPACE}
                     '''
                     checkout([$class: 'GitSCM', branches: [[name: '*/develop']], userRemoteConfigs: [[url: 'https://github.com/JGilPantoja/todolist-aws.git']]])
+                    sh '''
+                        ls -la
+                    '''
                 }
             }
         }
