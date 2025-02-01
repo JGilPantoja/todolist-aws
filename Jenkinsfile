@@ -99,7 +99,7 @@ pipeline {
         }
         stage('Promote') {
             steps {
-                withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
                     script {
                         sh '''
                             git config user.email "jenkins@jenkins.com"
