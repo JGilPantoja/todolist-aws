@@ -6,6 +6,7 @@ pipeline {
         STACK_NAME = 'todo-list-aws' 
         SAM_CONFIG_FILE = 'samconfig.toml' 
         SAM_CONFIG_ENV = 'default'
+        PATH = "/home/ubuntu/.local/bin:${env.PATH}"
     }
 
     stages {
