@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         AWS_REGION = 'us-east-1' 
-        STACK_NAME = 'todo-list-aws' 
+        STACK_NAME = 'todo-list-aws-staging' 
         SAM_CONFIG_FILE = 'samconfig.toml' 
         SAM_CONFIG_ENV = 'staging'
         PATH = "/var/lib/jenkins/.local/bin:${env.PATH}"
