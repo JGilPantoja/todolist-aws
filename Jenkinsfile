@@ -67,7 +67,7 @@ pipeline {
                         echo ${WORKSPACE}
                         
                         sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
-        
+            
                         sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
                         
                         sam deploy --config-file $SAM_CONFIG_FILE \
@@ -75,11 +75,12 @@ pipeline {
                                    --region $AWS_REGION \
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
-                                   if [[ $? -eq 1 ]]; then echo "No changes to deploy, continuing..."; else exit 1; fi
+                                   if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
                     '''
                 }
             }
         }
+
 
         stage('Rest Test') {
             steps {
