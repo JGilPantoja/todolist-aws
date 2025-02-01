@@ -99,23 +99,26 @@ pipeline {
         }
         stage('Promote') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
+                withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                    script {
                         sh '''
                             git config user.email "jenkins@jenkins.com"
                             git config user.name "Jenkins"
                             git fetch origin
                             git checkout master
+                            git checkout develop || git checkout -b develop origin/develop
+                            git checkout master
                             echo "Promoted to production at $(date)" >> README.md
                             git add README.md
                             git commit -m "Promoted to production on $(date)"
                             git merge develop
-                            git push https://${TOKEN}@github.com/JGilPantoja/todolist-aws.git master
+                            git push https://$TOKEN@github.com/JGilPantoja/todolist-aws.git master
                         '''
                     }
                 }
             }
         }
+
 
     }
 }
