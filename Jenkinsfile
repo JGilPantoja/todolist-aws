@@ -75,7 +75,7 @@ pipeline {
                                    --region $AWS_REGION \
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
-                                   (if [ $? -eq 255 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi)
+                                   if [[ $? -eq 1 ]]; then echo "No changes to deploy, continuing..."; else exit 1; fi
                     '''
                 }
             }
