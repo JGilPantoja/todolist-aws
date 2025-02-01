@@ -65,13 +65,15 @@ pipeline {
                         whoami
                         hostname
                         echo ${WORKSPACE}
+                        
                         sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
+        
                         sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
+                        
                         sam deploy --config-file $SAM_CONFIG_FILE \
                                    --config-env $SAM_CONFIG_ENV \
                                    --region $AWS_REGION \
                                    --no-confirm-changeset \
-                                   --resolve-s3 \
                                    --capabilities CAPABILITY_IAM
                     '''
                 }
