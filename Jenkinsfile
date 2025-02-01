@@ -36,9 +36,7 @@ pipeline {
                                 echo ${WORKSPACE}
                                 flake8 src --exit-zero --format=pylint > flake8_report.txt || true
                             '''
-                            recordIssues(
-                                tools: [flake8(name: 'Flake8', pattern: 'flake8_report.txt')]
-                            )
+                            archiveArtifacts artifacts: 'flake8_report.txt', fingerprint: true
                         }
                     }
                 }
@@ -50,18 +48,11 @@ pipeline {
                                 whoami
                                 hostname
                                 echo ${WORKSPACE}
-                                bandit -r src -f custom -o bandit_report.txt --msg-template "{abspath}:{line}: [{test_id}] {msg}" || true
+                                bandit -r src -f txt -o bandit_report.txt || true
                             '''
-                            recordIssues(
-                                tools: [pyLint(name: 'Bandit', pattern: 'bandit_report.txt')]
-                            )
+                            archiveArtifacts artifacts: 'bandit_report.txt', fingerprint: true
                         }
                     }
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: '*.txt', fingerprint: true
                 }
             }
         }
