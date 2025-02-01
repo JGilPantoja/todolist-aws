@@ -19,9 +19,6 @@ pipeline {
                         echo ${WORKSPACE}
                     '''
                     checkout([$class: 'GitSCM', branches: [[name: '*/develop']], userRemoteConfigs: [[url: 'https://github.com/JGilPantoja/todolist-aws.git']]])
-                    sh '''
-                        ls -la
-                    '''
                 }
             }
         }
@@ -97,6 +94,24 @@ pipeline {
         
                         pytest --maxfail=1 --disable-warnings test/integration/todoApiTest.py
                     '''
+                }
+            }
+        }
+        stage('Promote') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
+                        sh '''
+                            git config user.email "jenkins@jenkins.com"
+                            git config user.name "Jenkins"
+                            git checkout master
+                            echo "Promoted to production at $(date)" >> README.md
+                            git add README.md
+                            git commit -m "Promoted to production on $(date)"
+                            git merge develop
+                            git push https://${TOKEN}@github.com/JGilPantoja/todolist-aws.git master
+                        '''
+                    }
                 }
             }
         }
