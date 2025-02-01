@@ -65,8 +65,8 @@ pipeline {
                         whoami
                         hostname
                         echo ${WORKSPACE}
-                        sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV
-                        sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV
+                        sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
+                        sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
                         sam deploy --stack-name $STACK_NAME \
                                    --region $AWS_REGION \
                                    --no-confirm-changeset \
