@@ -80,5 +80,27 @@ pipeline {
             }
         }
 
+        stage('Rest Test') {
+            steps {
+                script {
+                    sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                        
+                        # Exportar la URL base
+                        export BASE_URL=$(aws cloudformation describe-stacks \
+                            --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+                        
+                        # Verificar que BASE_URL esté configurado
+                        echo "Base URL: $BASE_URL"
+                        
+                        # Ejecutar las pruebas con pytest
+                        pytest --maxfail=1 --disable-warnings test/integration/todoApiTest.py
+                    '''
+                }
+            }
+        }
+
     }
 }
