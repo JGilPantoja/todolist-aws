@@ -104,6 +104,7 @@ pipeline {
                         sh '''
                             git config user.email "jenkins@jenkins.com"
                             git config user.name "Jenkins"
+                            git fetch origin
                             git checkout master
                             echo "Promoted to production at $(date)" >> README.md
                             git add README.md
