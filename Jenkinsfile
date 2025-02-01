@@ -74,7 +74,8 @@ pipeline {
                                    --config-env $SAM_CONFIG_ENV \
                                    --region $AWS_REGION \
                                    --no-confirm-changeset \
-                                   --capabilities CAPABILITY_IAM
+                                   --capabilities CAPABILITY_IAM || \
+                                   (if [ $? -eq 255 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi)
                     '''
                 }
             }
@@ -88,14 +89,11 @@ pipeline {
                         hostname
                         echo ${WORKSPACE}
                         
-                        # Exportar la URL base
                         export BASE_URL=$(aws cloudformation describe-stacks \
                             --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
-                        
-                        # Verificar que BASE_URL esté configurado
+        
                         echo "Base URL: $BASE_URL"
-                        
-                        # Ejecutar las pruebas con pytest
+        
                         pytest --maxfail=1 --disable-warnings test/integration/todoApiTest.py
                     '''
                 }
