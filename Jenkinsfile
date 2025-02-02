@@ -105,7 +105,6 @@ pipeline {
                             git config user.email "jenkins@jenkins.com"
                             git config user.name "Jenkins"
                             git fetch origin
-                            git checkout master
                             git checkout develop || git checkout -b develop origin/develop
                             git checkout master
                             echo "Promoted to production at $(date)" >> README.md
