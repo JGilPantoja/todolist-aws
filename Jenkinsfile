@@ -3,9 +3,9 @@ pipeline {
     
     environment {
         AWS_REGION = 'us-east-1' 
-        STACK_NAME = 'todo-list-aws-staging' 
+        STACK_NAME = 'todo-list-aws-production' 
         SAM_CONFIG_FILE = 'samconfig.toml' 
-        SAM_CONFIG_ENV = 'staging'
+        SAM_CONFIG_ENV = 'production'
         PATH = "/var/lib/jenkins/.local/bin:${env.PATH}"
     }
 
@@ -13,44 +13,12 @@ pipeline {
         stage('Get Code') {
             steps {
                 script {
-                   sh '''
+                    sh '''
                         whoami
                         hostname
                         echo ${WORKSPACE}
                     '''
-                    checkout([$class: 'GitSCM', branches: [[name: '*/develop']], userRemoteConfigs: [[url: 'https://github.com/JGilPantoja/todolist-aws.git']]])
-                }
-            }
-        }
-
-        stage('Static Test') {
-            parallel {
-                stage('Flake8') {
-                    steps {
-                        script {
-                            sh '''
-                                whoami
-                                hostname
-                                echo ${WORKSPACE}
-                                flake8 src --exit-zero --format=pylint > flake8_report.txt || true
-                            '''
-                            archiveArtifacts artifacts: 'flake8_report.txt', fingerprint: true
-                        }
-                    }
-                }
-
-                stage('Bandit') {
-                    steps {
-                        script {
-                            sh '''
-                                whoami
-                                hostname
-                                echo ${WORKSPACE}
-                                bandit -r src -f txt -o bandit_report.txt || true
-                            '''
-                            archiveArtifacts artifacts: 'bandit_report.txt', fingerprint: true
-                        }
-                    }
+                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'https://github.com/JGilPantoja/todolist-aws.git']]])
                 }
             }
         }
@@ -92,32 +60,10 @@ pipeline {
         
                         echo "Base URL: $BASE_URL"
         
-                        pytest --maxfail=1 --disable-warnings test/integration/todoApiTest.py
+                        pytest -m read_only --maxfail=1 --disable-warnings test/integration/todoApiTest.py
                     '''
                 }
             }
         }
-        stage('Promote') {
-            steps {
-                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
-                    script {
-                        sh '''
-                            git config user.email "jenkins@jenkins.com"
-                            git config user.name "Jenkins"
-                            git fetch origin
-                            git checkout develop || git checkout -b develop origin/develop
-                            git checkout master
-                            echo "Promoted to production at $(date)" >> README.md
-                            git add README.md
-                            git commit -m "Promoted to production on $(date)"
-                            git merge develop
-                            git push https://$TOKEN@github.com/JGilPantoja/todolist-aws.git master
-                        '''
-                    }
-                }
-            }
-        }
-
-
     }
 }
