@@ -7,7 +7,6 @@ pipeline {
         SAM_CONFIG_FILE = 'samconfig.toml'
         SAM_CONFIG_ENV = 'staging'
         PATH = "/var/lib/jenkins/.local/bin:${env.PATH}"
-        BASE_URL_FILE = "${WORKSPACE}/base_url.txt"
     }
 
     stages {
@@ -67,23 +66,18 @@ pipeline {
                         whoami
                         hostname
                         echo ${WORKSPACE}
-
+                        
                         sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
+            
                         sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
-
+                        
                         sam deploy --config-file $SAM_CONFIG_FILE \
                                    --config-env $SAM_CONFIG_ENV \
                                    --region $AWS_REGION \
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
                                    if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
-
-                        # Guardar la URL del entorno en un archivo
-                        export BASE_URL=$(aws cloudformation describe-stacks \
-                            --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
-                        echo $BASE_URL > $BASE_URL_FILE
-                    '''
-                }
+                    '
             }
         }
 
