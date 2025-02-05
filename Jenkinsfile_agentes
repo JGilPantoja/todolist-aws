@@ -58,7 +58,7 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+                stage('Deploy') {
             agent any
             steps {
                 script {
@@ -77,10 +77,16 @@ pipeline {
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
                                    if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
+                        
+                        # Guardar URL en archivo para que la etapa Rest Test pueda usarla
+                        export BASE_URL=$(aws cloudformation describe-stacks \
+                            --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+                        echo $BASE_URL > ${WORKSPACE}/base_url.txt
                     '''
                 }
             }
         }
+
 
         stage('Rest Test') {
             agent { label 'agent2' }
@@ -91,15 +97,28 @@ pipeline {
                         hostname
                         echo ${WORKSPACE}
 
-                        # Leer la URL del entorno desde el archivo
-                        export BASE_URL=$(cat $BASE_URL_FILE)
-                        echo "Base URL: $BASE_URL"
+                        # Verificar que pytest esté instalado, si no, instalarlo
+                        if ! command -v pytest &> /dev/null; then
+                            echo "pytest no encontrado, instalándolo..."
+                            pip3 install --user pytest
+                        fi
+
+                        # Verificar que el archivo existe antes de leerlo
+                        if [ -f ${WORKSPACE}/base_url.txt ]; then
+                            export BASE_URL=$(cat ${WORKSPACE}/base_url.txt)
+                            echo "Base URL: $BASE_URL"
+                        else
+                            echo "Error: No se encontró base_url.txt"
+                            exit 1
+                        fi
 
                         pytest --maxfail=1 --disable-warnings test/integration/todoApiTest.py
                     '''
                 }
             }
         }
+
+
 
         stage('Promote') {
             agent any 
