@@ -11,7 +11,10 @@ pipeline {
 
     stages {
         stage('Get Code') {
-            agent any
+            agent {
+                label 'agent2'
+                customWorkspace '/home/jenkins/workspace/caso1.4-reto3'
+            }
             steps {
                 script {
                     sh '''
