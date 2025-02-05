@@ -7,14 +7,12 @@ pipeline {
         SAM_CONFIG_FILE = 'samconfig.toml'
         SAM_CONFIG_ENV = 'staging'
         PATH = "/var/lib/jenkins/.local/bin:${env.PATH}"
+        BASE_URL_FILE = "${WORKSPACE}/base_url.txt"
     }
 
     stages {
         stage('Get Code') {
-            agent {
-                label 'agent2'
-                customWorkspace '/home/jenkins/workspace/caso1.4-reto3'
-            }
+            agent { label 'agent2' }
             steps {
                 script {
                     sh '''
@@ -80,10 +78,10 @@ pipeline {
                                    --capabilities CAPABILITY_IAM || \
                                    if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
 
-                        #solucion para conocer la URL entre agentes
+                        # Guardar la URL del entorno en un archivo
                         export BASE_URL=$(aws cloudformation describe-stacks \
                             --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
-                        echo $BASE_URL > ${WORKSPACE}/base_url.txt
+                        echo $BASE_URL > $BASE_URL_FILE
                     '''
                 }
             }
@@ -99,7 +97,7 @@ pipeline {
                         echo ${WORKSPACE}
 
                         # Leer la URL del entorno desde el archivo
-                        export BASE_URL=$(cat ${WORKSPACE}/base_url.txt)
+                        export BASE_URL=$(cat $BASE_URL_FILE)
                         echo "Base URL: $BASE_URL"
 
                         pytest --maxfail=1 --disable-warnings test/integration/todoApiTest.py
