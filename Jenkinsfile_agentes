@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'built-in' } // Ejecutar todo en el nodo principal excepto "Rest Test"
+    agent any
     
     environment {
         AWS_REGION = 'us-east-1'
@@ -11,6 +11,7 @@ pipeline {
 
     stages {
         stage('Get Code') {
+            agent { label 'built-in' }
             steps {
                 script {
                     sh '''
@@ -24,6 +25,7 @@ pipeline {
         }
 
         stage('Deploy') {
+            agent { label 'built-in' }
             steps {
                 script {
                     sh '''
@@ -58,7 +60,7 @@ pipeline {
         }
 
         stage('Rest Test') {
-            agent { label 'agent2' } // Ejecutar esta etapa en el nodo agent2
+            agent { label 'agent2' } 
             steps {
                 script {
                     sh '''
