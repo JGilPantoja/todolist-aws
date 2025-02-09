@@ -10,6 +10,33 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs() // Limpia el workspace antes de continuar
+            }
+        }
+        stage('Check Git') {
+            agent { label 'agent1' }
+            steps {
+                script {
+                    sh '''
+                        echo "Comprobando git en el agente..."
+                        git --version || echo "Git no está instalado en este agente."
+                    '''
+                }
+            }
+        }
+        stage('Check Git') {
+            agent { label 'agent2' }
+            steps {
+                script {
+                    sh '''
+                        echo "Comprobando git en el agente..."
+                        git --version || echo "Git no está instalado en este agente."
+                    '''
+                }
+            }
+        }
         stage('Get Code') {
             agent { label 'agent2' }
             steps {
