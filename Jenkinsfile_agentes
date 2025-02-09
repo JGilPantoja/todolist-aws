@@ -11,7 +11,7 @@ pipeline {
 
     stages {
         stage('Get Code') {
-            agent any
+            agent { label 'agent2' }
             steps {
                 script {
                     sh '''
@@ -59,7 +59,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent any
+            agent { label 'agent1' }
             steps {
                 script {
                     sh '''
@@ -87,31 +87,36 @@ pipeline {
                             exit 1
                         fi
                         
-                        echo $BASE_URL > base_url.txt
+                        echo $BASE_URL > ${WORKSPACE}/base_url.txt
                         echo "Base URL guardada en ${WORKSPACE}/base_url.txt"
                     '''
-                    stash includes: 'base_url.txt', name: 'base_url'
                 }
             }
         }
+
+
 
         stage('Rest Test') {
             agent { label 'agent2' }
             steps {
                 script {
-                    unstash 'base_url'
                     sh '''
                         whoami
                         hostname
                         echo ${WORKSPACE}
 
+                        # Verificar que pytest esté instalado, si no, instalarlo
+                        if ! command -v pytest &> /dev/null; then
+                            echo "pytest no encontrado, instalándolo..."
+                            pip3 install --user pytest
+                        fi
+
                         # Verificar que el archivo existe antes de leerlo
-                        if [ -f base_url.txt ]; then
-                            export BASE_URL=$(cat base_url.txt)
+                        if [ -f ${WORKSPACE}/base_url.txt ]; then
+                            export BASE_URL=$(cat ${WORKSPACE}/base_url.txt)
                             echo "Base URL: $BASE_URL"
                         else
-                            echo "Error: No se encontró base_url.txt en ${WORKSPACE}"
-                            ls -l ${WORKSPACE}
+                            echo "Error: No se encontró base_url.txt"
                             exit 1
                         fi
 
@@ -121,8 +126,10 @@ pipeline {
             }
         }
 
+
+
         stage('Promote') {
-            agent any 
+            agent { label 'agent1' }
             steps {
                 withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
                     script {
