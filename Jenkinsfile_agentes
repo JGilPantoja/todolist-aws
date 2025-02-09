@@ -1,22 +1,16 @@
 pipeline {
-    agent any
+    agent { label 'built-in' } // Ejecutar todo en el nodo principal excepto "Rest Test"
     
     environment {
-        AWS_REGION = 'us-east-1' 
-        STACK_NAME = 'todo-list-aws-production' 
-        SAM_CONFIG_FILE = 'samconfig.toml' 
+        AWS_REGION = 'us-east-1'
+        STACK_NAME = 'todo-list-aws-production'
+        SAM_CONFIG_FILE = 'samconfig.toml'
         SAM_CONFIG_ENV = 'production'
         PATH = "/var/lib/jenkins/.local/bin:${env.PATH}"
     }
 
     stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs() 
-            }
-        }
         stage('Get Code') {
-            agent { label 'built-in' }
             steps {
                 script {
                     sh '''
@@ -30,7 +24,6 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent { label 'built-in' }
             steps {
                 script {
                     sh '''
@@ -48,8 +41,8 @@ pipeline {
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
                                    if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
-                                   
-                        # Asegurar que la URL se guarda correctamente en el archivo
+                        
+                        # Guardar la Base URL en un archivo
                         export BASE_URL=$(aws cloudformation describe-stacks \
                             --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
                         
@@ -59,15 +52,13 @@ pipeline {
                         fi
                         
                         echo $BASE_URL > ${WORKSPACE}/base_url.txt
-                        echo "Base URL guardada en ${WORKSPACE}/base_url.txt"
                     '''
                 }
             }
         }
 
-
         stage('Rest Test') {
-            agent { label 'agent2' }
+            agent { label 'agent2' } // Ejecutar esta etapa en el nodo agent2
             steps {
                 script {
                     sh '''
@@ -75,7 +66,7 @@ pipeline {
                         hostname
                         echo ${WORKSPACE}
                         
-                        # Verificar que el archivo existe antes de leerlo
+                        # Verificar que el archivo base_url.txt existe
                         if [ -f ${WORKSPACE}/base_url.txt ]; then
                             export BASE_URL=$(cat ${WORKSPACE}/base_url.txt)
                             echo "Base URL: $BASE_URL"
