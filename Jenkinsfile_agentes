@@ -48,6 +48,18 @@ pipeline {
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
                                    if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
+                                   
+                        # Asegurar que la URL se guarda correctamente en el archivo
+                        export BASE_URL=$(aws cloudformation describe-stacks \
+                            --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
+                        
+                        if [ -z "$BASE_URL" ]; then
+                            echo "Error: No se obtuvo la Base URL"
+                            exit 1
+                        fi
+                        
+                        echo $BASE_URL > ${WORKSPACE}/base_url.txt
+                        echo "Base URL guardada en ${WORKSPACE}/base_url.txt"
                     '''
                 }
             }
@@ -63,10 +75,15 @@ pipeline {
                         hostname
                         echo ${WORKSPACE}
                         
-                        export BASE_URL=$(aws cloudformation describe-stacks \
-                            --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
-        
-                        echo "Base URL: $BASE_URL"
+                        # Verificar que el archivo existe antes de leerlo
+                        if [ -f ${WORKSPACE}/base_url.txt ]; then
+                            export BASE_URL=$(cat ${WORKSPACE}/base_url.txt)
+                            echo "Base URL: $BASE_URL"
+                        else
+                            echo "Error: No se encontró base_url.txt en ${WORKSPACE}"
+                            ls -l ${WORKSPACE}
+                            exit 1
+                        fi
         
                         pytest -m read_only --maxfail=1 --disable-warnings test/integration/todoApiTest.py
                     '''
