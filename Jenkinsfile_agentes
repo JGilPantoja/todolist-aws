@@ -59,7 +59,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent any
+            agent { label 'agent2' }
             steps {
                 script {
                     sh '''
@@ -125,7 +125,7 @@ pipeline {
 
 
         stage('Promote') {
-            agent any 
+            agent { label 'agent1' }
             steps {
                 withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
                     script {
