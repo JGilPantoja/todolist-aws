@@ -67,7 +67,6 @@ pipeline {
         stage('Rest Test') {
             agent { label 'agent2' } 
             steps {
-                cleanWs()
                 script {
                     sh '''
                         whoami
