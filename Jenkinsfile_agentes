@@ -39,7 +39,7 @@ pipeline {
                         echo ${WORKSPACE}
                         
                         sam build --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
-            
+        
                         sam validate --config-file $SAM_CONFIG_FILE --config-env $SAM_CONFIG_ENV --region $AWS_REGION
                         
                         sam deploy --config-file $SAM_CONFIG_FILE \
@@ -61,12 +61,15 @@ pipeline {
                         echo $BASE_URL > ${WORKSPACE}/base_url.txt
                     '''
                 }
+                stash includes: 'base_url.txt', name: 'rest-data'
             }
         }
+
 
         stage('Rest Test') {
             agent { label 'agent2' } 
             steps {
+                unstash 'rest-data' 
                 script {
                     sh '''
                         whoami
