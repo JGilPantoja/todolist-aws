@@ -11,7 +11,7 @@ pipeline {
 
     stages {
         stage('Get Code') {
-            agent { label 'agent2' }
+            agent any
             steps {
                 script {
                     sh '''
@@ -59,7 +59,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent { label 'agent2' }
+            agent any
             steps {
                 script {
                     sh '''
@@ -77,19 +77,8 @@ pipeline {
                                    --no-confirm-changeset \
                                    --capabilities CAPABILITY_IAM || \
                                    if [ $? -eq 1 ]; then echo "No changes to deploy, continuing..."; else exit 1; fi
-                        
-                        # Asegurar que la URL se guarda correctamente en el archivo
-                        export BASE_URL=$(aws cloudformation describe-stacks \
-                            --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" --output text)
-                        
-                        if [ -z "$BASE_URL" ]; then
-                            echo "Error: No se obtuvo la Base URL"
-                            exit 1
-                        fi
-                        
-                        echo $BASE_URL > ${WORKSPACE}/base_url.txt
-                        echo "Base URL guardada en ${WORKSPACE}/base_url.txt"
                     '''
+                    stash includes: 'base_url.txt', name: 'base_url'
                 }
             }
         }
@@ -100,6 +89,7 @@ pipeline {
             agent { label 'agent2' }
             steps {
                 script {
+                    unstash 'base_url'
                     sh '''
                         whoami
                         hostname
@@ -125,7 +115,7 @@ pipeline {
 
 
         stage('Promote') {
-            agent { label 'agent1' }
+            agent any 
             steps {
                 withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'TOKEN')]) {
                     script {
