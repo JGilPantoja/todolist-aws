@@ -59,7 +59,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent { label 'agent1' }
+            agent { label 'agent2' }
             steps {
                 script {
                     sh '''
@@ -96,7 +96,7 @@ pipeline {
 
 
 
-        stage('Rest Test') {
+         stage('Rest Test') {
             agent { label 'agent2' }
             steps {
                 script {
@@ -105,18 +105,13 @@ pipeline {
                         hostname
                         echo ${WORKSPACE}
 
-                        # Verificar que pytest esté instalado, si no, instalarlo
-                        if ! command -v pytest &> /dev/null; then
-                            echo "pytest no encontrado, instalándolo..."
-                            pip3 install --user pytest
-                        fi
-
                         # Verificar que el archivo existe antes de leerlo
                         if [ -f ${WORKSPACE}/base_url.txt ]; then
                             export BASE_URL=$(cat ${WORKSPACE}/base_url.txt)
                             echo "Base URL: $BASE_URL"
                         else
-                            echo "Error: No se encontró base_url.txt"
+                            echo "Error: No se encontró base_url.txt en ${WORKSPACE}"
+                            ls -l ${WORKSPACE}
                             exit 1
                         fi
 
@@ -125,6 +120,7 @@ pipeline {
                 }
             }
         }
+
 
 
 
